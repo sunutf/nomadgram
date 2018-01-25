@@ -129,3 +129,28 @@ class Comment(APIView):
 
         except models.Comment.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class Search(APIView):
+
+    def get(self, request, format=None):
+
+        hashtags = request.query_params.get('hashtags', None)
+
+        #split 을 하기 위해서는 None이면 에러가 발생, 따라서 if ~ is not None
+        if hashtags:
+
+            hashtags = hashtags.split(",")
+
+            images = models.Image.objects.filter(tags__name__in=hashtags).distinct()
+            # distinct는 a,b 가 있는 게시물이 a에서 1번, b에서 1번 검색되면 두 번 중복해서 출력되는걸, 막아준다.
+            # tags__name__in 'deep relationships'이라는 표현, tags내의 name의 속성을 __in을 써서 array에서 검색 
+
+            serializer = serializers.CountImageSerializer(images, many=True)
+
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+        else:
+
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
