@@ -3,13 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from . import models, serializers
 from django.shortcuts import get_object_or_404
+from nomadgram.notifications import views as notification_views
 
-
-# Create your views here.
 
 class Feed(APIView):
-
-    def get(self, request, format=None):  
+    def get(self, request, format=None):
 
         user = request.user
 
@@ -25,14 +23,15 @@ class Feed(APIView):
 
                 image_list.append(image)
 
-        sorted_list = sorted(image_list, key=lambda image: image.created_at, reverse=True)
+        sorted_list = sorted(
+            image_list, key=lambda image: image.created_at, reverse=True)
 
         serializer = serializers.ImageSerializer(sorted_list, many=True)
 
         return Response(serializer.data)
 
-class LikeImage(APIView):
 
+class LikeImage(APIView):
     def post(self, request, image_id, format=None):
 
         user = request.user
@@ -44,18 +43,18 @@ class LikeImage(APIView):
 
         try:
             preexisting_like = models.Like.objects.get(
-                creator=user,
-                image=found_image
-            )
+                creator=user, image=found_image)
 
-            return Response(status = status.HTTP_304_NOT_MODIFIED)
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
 
         except models.Like.DoesNotExist:
 
             new_like = models.Like.objects.create(
                 creator=user,
-                imafge=found_image
+                image=found_image
             )
+
+            notification_views.create_notification(user, found_image.creator, 'like', found_image)
 
             new_like.save()
 
@@ -65,7 +64,7 @@ class LikeImage(APIView):
 class UnLikeImage(APIView):
 
     def delete(self, request, image_id, format=None):
-        
+
         user = request.user
 
         try:
@@ -102,15 +101,16 @@ class CommentOnImage(APIView):
         except models.Image.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
         serializer = serializers.CommentSerializer(data=request.data)
 
         if serializer.is_valid():
 
             serializer.save(creator=user,image=found_image)
 
+            notificiation_views.create_notification(user, found_image.creator, 'comment', found_image, request.data['message'])
+
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        
+
         else:
 
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -142,9 +142,10 @@ class Search(APIView):
 
             hashtags = hashtags.split(",")
 
-            images = models.Image.objects.filter(tags__name__in=hashtags).distinct()
+            images = models.Image.objects.filter(
+                tags__name__in=hashtags).distinct()
             # distinct는 a,b 가 있는 게시물이 a에서 1번, b에서 1번 검색되면 두 번 중복해서 출력되는걸, 막아준다.
-            # tags__name__in 'deep relationships'이라는 표현, tags내의 name의 속성을 __in을 써서 array에서 검색 
+            # tags__name__in 'deep relationships'이라는 표현, tags내의 name의 속성을 __in을 써서 array에서 검색
 
             serializer = serializers.CountImageSerializer(images, many=True)
 
@@ -153,4 +154,3 @@ class Search(APIView):
         else:
 
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        
