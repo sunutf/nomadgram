@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 import environ
 
-ROOT_DIR = environ.Path(__file__) - 3  # (nomadgram/config/settings/base.py - 3 = nomadgram/)
+ROOT_DIR = environ.Path(
+    __file__) - 3  # (nomadgram/config/settings/base.py - 3 = nomadgram/)
 APPS_DIR = ROOT_DIR.path('nomadgram')
 
 # Load operating system environment variables and then prepare to use them
@@ -48,8 +49,13 @@ THIRD_PARTY_APPS = [
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
-    'rest_framework', # REST framework
-    'taggit', # Tags for the phots
+    'allauth.socialaccount.providers.facebook',
+    'rest_framework',  # REST framework
+    'rest_framework.authtoken',
+    'taggit',  # Tags for the phots
+    'taggit_serializer',  #tag serializer
+    'rest_auth',  # rest_auth  
+    'rest_auth.registration',  # rest_auth.registration
 ]
 
 # Apps specific for this project go here.
@@ -58,7 +64,7 @@ LOCAL_APPS = [
     'nomadgram.users.apps.UsersConfig',
     # Your stuff: custom apps go here
     'nomadgram.images.apps.ImagesConfig',
-    'nomadgram.notifications.apps.NotificationsConfig' # notifications app
+    'nomadgram.notifications.apps.NotificationsConfig'  # notifications app
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -78,9 +84,7 @@ MIDDLEWARE = [
 
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
-MIGRATION_MODULES = {
-    'sites': 'nomadgram.contrib.sites.migrations'
-}
+MIGRATION_MODULES = {'sites': 'nomadgram.contrib.sites.migrations'}
 
 # DEBUG
 # ------------------------------------------------------------------------------
@@ -96,7 +100,9 @@ FIXTURE_DIRS = (
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_BACKEND = env(
+    'DJANGO_EMAIL_BACKEND',
+    default='django.core.mail.backends.smtp.EmailBackend')
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -155,7 +161,8 @@ TEMPLATES = [
         ],
         'OPTIONS': {
             # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
-            'debug': DEBUG,
+            'debug':
+            DEBUG,
             # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
             # https://docs.djangoproject.com/en/dev/ref/templates/api/#loader-types
             'loaders': [
@@ -232,16 +239,20 @@ PASSWORD_HASHERS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -254,17 +265,16 @@ AUTHENTICATION_BACKENDS = [
 
 # Some really nice defaults
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
 ACCOUNT_ADAPTER = 'nomadgram.users.adapters.AccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'nomadgram.users.adapters.SocialAccountAdapter'
 
-# Custom user app defaults 
+# Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
-LOGIN_REDIRECT_URL = 'users:redirect'
 LOGIN_URL = 'account_login'
 
 # SLUGLIFIER
@@ -277,3 +287,13 @@ ADMIN_URL = r'^admin/'
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 TAGGIT_CASE_INSENSITIVE = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES':
+    ('rest_framework.permissions.IsAuthenticated', ),
+    'DEFAULT_AUTHENTICATION_CLASSES':
+    ('rest_framework_jwt.authentication.JSONWebTokenAuthentication', ),
+}
+
+REST_USE_JWT = True
+ACCOUNT_LOGOUT_ON_GET = True
