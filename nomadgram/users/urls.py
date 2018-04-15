@@ -25,5 +25,5 @@ urlpatterns = [
     url(regex=r'^(?P<username>\w+)/password/$',
         view=views.ChangePassword.as_view(),
         name='change '),
-    url(r'^rest-auth/facebook/$', views.FacebookLogin.as_view(), name='fb_login'),
+    url(r'^login/facebook/$', views.FacebookLogin.as_view(), name='fb_login'),
 ]
